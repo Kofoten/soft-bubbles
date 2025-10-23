@@ -41,6 +41,7 @@ const material = new THREE.ShaderMaterial({
 
 const particles = new THREE.Points(geometry, material);
 for (let i = 0; i < starCount; i++) {
+  const i2 = i * 2;
   const i3 = i * 3;
 
   positions[i3] = (Math.random() - 0.5) * worldSize;
@@ -48,12 +49,12 @@ for (let i = 0; i < starCount; i++) {
 
   sizes[i] = Math.random() * (maxSize - minSize) + minSize;
 
-  speeds[i] = Math.random() * 2 + 1;
+  speeds[i] = Math.random() + 2;
 
   rates[i] = Math.random() + 0.1;
 
-  directions[i] = Math.random() * 2 - 1;
-  directions[i + 1] = Math.random() * 2 - 1;
+  directions[i2] = Math.random() * 2 - 1;
+  directions[i2 + 1] = Math.random() * 2 - 1;
 
   color.setHSL(Math.random(), 1, 0.5);
   colors[i3] = color.r;
@@ -69,11 +70,14 @@ function animate() {
   const sizesAttribute = particles.geometry.attributes.size;
 
   for (let i = 0; i < starCount; i++) {
+    const i2 = i * 2;
     const i3 = i * 3;
 
-    positionsAttribute.array[i3] += directions[i] * speeds[i] * deltaTime;
+    const sizeSpeedMultiplier = 1.5 - sizesAttribute.array[i] / maxSize;
+    positionsAttribute.array[i3] +=
+      directions[i2] * speeds[i] * sizeSpeedMultiplier * deltaTime;
     positionsAttribute.array[i3 + 1] +=
-      directions[i + 1] * speeds[i] * deltaTime;
+      directions[i2 + 1] * speeds[i] * sizeSpeedMultiplier * deltaTime;
     sizesAttribute.array[i] += rates[i] * deltaTime;
 
     if (sizesAttribute.array[i] < minSize) {
@@ -84,26 +88,22 @@ function animate() {
 
     if (positionsAttribute.array[i3] < -halfWorld) {
       positionsAttribute.array[i3] = -halfWorld;
-      directions[i] = Math.random();
-      directions[i + 1] = Math.random() * 2 - 1;
+      directions[i2] *= -1;
     }
 
     if (positionsAttribute.array[i3] > halfWorld) {
       positionsAttribute.array[i3] = halfWorld;
-      directions[i] = Math.random() * -1;
-      directions[i + 1] = Math.random() * 2 - 1;
+      directions[i2] *= -1;
     }
 
     if (positionsAttribute.array[i3 + 1] < -halfWorld) {
       positionsAttribute.array[i3 + 1] = -halfWorld;
-      directions[i + 1] = Math.random();
-      directions[i] = Math.random() * 2 - 1;
+      directions[i2 + 1] *= -1;
     }
 
     if (positionsAttribute.array[i3 + 1] > halfWorld) {
       positionsAttribute.array[i3 + 1] = halfWorld;
-      directions[i + 1] = Math.random() * -1;
-      directions[i] = Math.random() * 2 - 1;
+      directions[i2 + 1] *= -1;
     }
   }
 

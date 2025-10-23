@@ -6,9 +6,20 @@ import fragmentShader from "./shaders/fragment.glsl?raw";
 const worldSize = 20;
 const halfWorld = worldSize / 2;
 
-const starCount = 500;
-const minSize = 5;
-const maxSize = 15;
+const urlParams = new URLSearchParams(window.location.search);
+const countParamValue = parseInt(urlParams.get('count'), 10);
+const minSizeParamValue = parseFloat(urlParams.get('minsize'), 10);
+const maxSizeParamValue = parseFloat(urlParams.get('maxsize'), 10);
+const sizeRateParamValue = parseFloat(urlParams.get('sizerate'), 10);
+const speedMultParamValue = parseFloat(urlParams.get('speedmult'), 10);
+const minSpeedParamValue = parseFloat(urlParams.get('minspeed'), 10);
+
+const count = Number.isFinite(countParamValue) ? countParamValue : 500;
+const minSize = Number.isFinite(minSizeParamValue) ? minSizeParamValue : 5;
+const maxSize = Number.isFinite(maxSizeParamValue) ? maxSizeParamValue : 15;
+const sizeRate = Number.isFinite(sizeRateParamValue) ? sizeRateParamValue : 1;
+const speedMult = Number.isFinite(speedMultParamValue) ? speedMultParamValue : 1;
+const minSpeed = Number.isFinite(minSpeedParamValue) ? minSpeedParamValue : 2;
 
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-10, 10, 10, -10);
@@ -21,12 +32,12 @@ const clock = new THREE.Clock();
 
 const color = new THREE.Color();
 const geometry = new THREE.BufferGeometry();
-const positions = new Float32Array(starCount * 3);
-const sizes = new Float32Array(starCount);
-const rates = new Float32Array(starCount);
-const speeds = new Float32Array(starCount);
-const colors = new Float32Array(starCount * 3);
-const directions = new Float32Array(starCount * 2);
+const positions = new Float32Array(count * 3);
+const sizes = new Float32Array(count);
+const rates = new Float32Array(count);
+const speeds = new Float32Array(count);
+const colors = new Float32Array(count * 3);
+const directions = new Float32Array(count * 2);
 
 geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
@@ -40,7 +51,7 @@ const material = new THREE.ShaderMaterial({
 });
 
 const particles = new THREE.Points(geometry, material);
-for (let i = 0; i < starCount; i++) {
+for (let i = 0; i < count; i++) {
   const i2 = i * 2;
   const i3 = i * 3;
 
@@ -49,9 +60,9 @@ for (let i = 0; i < starCount; i++) {
 
   sizes[i] = Math.random() * (maxSize - minSize) + minSize;
 
-  speeds[i] = Math.random() + 2;
+  speeds[i] = Math.random() * speedMult + minSpeed;
 
-  rates[i] = Math.random() + 0.1;
+  rates[i] = Math.random() * sizeRate + 0.1;
 
   directions[i2] = Math.random() * 2 - 1;
   directions[i2 + 1] = Math.random() * 2 - 1;
@@ -61,6 +72,7 @@ for (let i = 0; i < starCount; i++) {
   colors[i3 + 1] = color.g;
   colors[i3 + 2] = color.b;
 }
+
 scene.add(particles);
 
 function animate() {
@@ -69,7 +81,7 @@ function animate() {
   const positionsAttribute = particles.geometry.attributes.position;
   const sizesAttribute = particles.geometry.attributes.size;
 
-  for (let i = 0; i < starCount; i++) {
+  for (let i = 0; i < count; i++) {
     const i2 = i * 2;
     const i3 = i * 3;
 
@@ -81,9 +93,9 @@ function animate() {
     sizesAttribute.array[i] += rates[i] * deltaTime;
 
     if (sizesAttribute.array[i] < minSize) {
-      rates[i] = Math.random() + 0.1;
+      rates[i] = Math.random() * sizeRate + 0.1;
     } else if (sizesAttribute.array[i] > maxSize) {
-      rates[i] = (Math.random() + 0.1) * -1;
+      rates[i] = (Math.random() * sizeRate + 0.1) * -1;
     }
 
     if (positionsAttribute.array[i3] < -halfWorld) {

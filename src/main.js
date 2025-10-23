@@ -1,12 +1,15 @@
 import * as THREE from "three";
 
-import vertexShader from "./shaders/vertex.glsl?raw";
-import fragmentShader from "./shaders/fragment.glsl?raw";
+import bubbleVertexShader from "./shaders/bubble_vertex.glsl?raw";
+import bubbleFragmentShader from "./shaders/bubble_fragment.glsl?raw";
+import starVertexShader from "./shaders/star_vertex.glsl?raw";
+import starFragmentShader from "./shaders/star_fragment.glsl?raw";
 
 const worldSize = 20;
 const halfWorld = worldSize / 2;
 
 const urlParams = new URLSearchParams(window.location.search);
+const shapeParamValue = urlParams.get('shape')
 const countParamValue = parseInt(urlParams.get('count'), 10);
 const minSizeParamValue = parseFloat(urlParams.get('minsize'), 10);
 const maxSizeParamValue = parseFloat(urlParams.get('maxsize'), 10);
@@ -42,6 +45,19 @@ const directions = new Float32Array(count * 2);
 geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+let vertexShader, fragmentShader;
+switch (shapeParamValue) {
+  case 'star':
+    vertexShader = starVertexShader;
+    fragmentShader = starFragmentShader;
+    break;
+  case 'bubble':
+  default:
+    vertexShader = bubbleVertexShader;
+    fragmentShader = bubbleFragmentShader;
+    break;
+}
 
 const material = new THREE.ShaderMaterial({
   vertexShader: vertexShader,

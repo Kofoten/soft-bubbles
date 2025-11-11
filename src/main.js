@@ -4,24 +4,28 @@ import bubbleVertexShader from "./shaders/bubble_vertex.glsl?raw";
 import bubbleFragmentShader from "./shaders/bubble_fragment.glsl?raw";
 import starVertexShader from "./shaders/star_vertex.glsl?raw";
 import starFragmentShader from "./shaders/star_fragment.glsl?raw";
+import snowVertexShader from "./shaders/snow_vertex.glsl?raw";
+import snowFragmentShader from "./shaders/snow_fragment.glsl?raw";
 
 const worldSize = 20;
 const halfWorld = worldSize / 2;
 
 const urlParams = new URLSearchParams(window.location.search);
-const shapeParamValue = urlParams.get('shape')
-const countParamValue = parseInt(urlParams.get('count'), 10);
-const minSizeParamValue = parseFloat(urlParams.get('minsize'), 10);
-const maxSizeParamValue = parseFloat(urlParams.get('maxsize'), 10);
-const sizeRateParamValue = parseFloat(urlParams.get('sizerate'), 10);
-const speedMultParamValue = parseFloat(urlParams.get('speedmult'), 10);
-const minSpeedParamValue = parseFloat(urlParams.get('minspeed'), 10);
+const shapeParamValue = urlParams.get("shape");
+const countParamValue = parseInt(urlParams.get("count"), 10);
+const minSizeParamValue = parseFloat(urlParams.get("minsize"), 10);
+const maxSizeParamValue = parseFloat(urlParams.get("maxsize"), 10);
+const sizeRateParamValue = parseFloat(urlParams.get("sizerate"), 10);
+const speedMultParamValue = parseFloat(urlParams.get("speedmult"), 10);
+const minSpeedParamValue = parseFloat(urlParams.get("minspeed"), 10);
 
 const count = Number.isFinite(countParamValue) ? countParamValue : 500;
 const minSize = Number.isFinite(minSizeParamValue) ? minSizeParamValue : 5;
 const maxSize = Number.isFinite(maxSizeParamValue) ? maxSizeParamValue : 15;
 const sizeRate = Number.isFinite(sizeRateParamValue) ? sizeRateParamValue : 1;
-const speedMult = Number.isFinite(speedMultParamValue) ? speedMultParamValue : 1;
+const speedMult = Number.isFinite(speedMultParamValue)
+  ? speedMultParamValue
+  : 1;
 const minSpeed = Number.isFinite(minSpeedParamValue) ? minSpeedParamValue : 2;
 
 const scene = new THREE.Scene();
@@ -46,25 +50,41 @@ geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-let vertexShader, fragmentShader;
+let material;
 switch (shapeParamValue) {
-  case 'star':
-    vertexShader = starVertexShader;
-    fragmentShader = starFragmentShader;
+  case "star":
+    material = new THREE.ShaderMaterial({
+      vertexShader: starVertexShader,
+      fragmentShader: starFragmentShader,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+    });
     break;
-  case 'bubble':
+  case "snow":
+    const textureLoader = new THREE.TextureLoader();
+    const snowflakeTexture = textureLoader.load("assets/snowflake.png");
+
+    material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTexture: { value: snowflakeTexture },
+      },
+      vertexShader: snowVertexShader,
+      fragmentShader: snowFragmentShader,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    break;
+  case "bubble":
   default:
-    vertexShader = bubbleVertexShader;
-    fragmentShader = bubbleFragmentShader;
+    material = new THREE.ShaderMaterial({
+      vertexShader: bubbleVertexShader,
+      fragmentShader: bubbleFragmentShader,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+    });
     break;
 }
-
-const material = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-});
 
 const particles = new THREE.Points(geometry, material);
 for (let i = 0; i < count; i++) {
